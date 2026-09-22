@@ -1,4 +1,5 @@
 import { loadCities, saveCities, getDefaultCity, setDefaultCity, addCity, removeCity, getAllCities, updateSettings, getSettings } from './data'
+import { CityData, City } from './data'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -7,22 +8,18 @@ describe('Data module', () => {
   let originalData: any
 
   beforeEach(async () => {
-    // Save original data before each test
     try {
       const content = await fs.readFile(DATA_FILE, 'utf-8')
       originalData = JSON.parse(content)
     } catch (err) {
-      // File doesn't exist yet, use default
       originalData = null
     }
   })
 
   afterEach(async () => {
-    // Restore original data after each test
     if (originalData) {
       await fs.writeFile(DATA_FILE, JSON.stringify(originalData, null, 2), 'utf-8')
     } else {
-      // Clean up test file if it exists
       try {
         await fs.unlink(DATA_FILE)
       } catch (err) {
@@ -33,16 +30,13 @@ describe('Data module', () => {
 
   describe('loadCities', () => {
     test('should load existing cities.json file', async () => {
-      // Create test data file
-      const testData: {
-        defaultCity: string;
-        cities: { name: string; lat: number; lon: number; }[];
-      } = {
+      const testData: CityData = {
         defaultCity: 'Test City',
         cities: [
           { name: 'Test City', lat: 0, lon: 0 },
           { name: 'Another City', lat: 1, lon: 1 }
-        ]
+        ],
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
@@ -54,11 +48,10 @@ describe('Data module', () => {
     })
 
     test('should create default data if file does not exist', async () => {
-      // Ensure test file doesn't exist
       try {
         await fs.unlink(DATA_FILE)
       } catch (err) {
-        // Ignore
+        // Ignore if file doesn't exist
       }
 
       const loaded = await loadCities()
@@ -70,14 +63,10 @@ describe('Data module', () => {
 
   describe('saveCities', () => {
     test('should save data to cities.json', async () => {
-      const testData: {
-        defaultCity: string;
-        cities: { name: string; lat: number; lon: number; }[];
-        settings: { temperatureUnit: "celsius" | "fahrenheit" };
-      } = {
+      const testData: CityData = {
         defaultCity: 'Test City',
         cities: [{ name: 'Test City', lat: 0, lon: 0 }],
-        settings: { temperatureUnit: 'celsius' as const }
+        settings: { temperatureUnit: 'celsius' }
       }
 
       await saveCities(testData)
@@ -92,15 +81,13 @@ describe('Data module', () => {
 
   describe('getDefaultCity', () => {
     test('should return default city when it exists', async () => {
-      const testData: {
-        defaultCity: string;
-        cities: { name: string; lat: number; lon: number; }[];
-      } = {
+      const testData: CityData = {
         defaultCity: 'São Paulo',
         cities: [
           { name: 'São Paulo', lat: -23.5475, lon: -46.63611 },
           { name: 'Rio de Janeiro', lat: -22.90642, lon: -43.18223 }
-        ]
+        ],
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
@@ -110,14 +97,10 @@ describe('Data module', () => {
     })
 
     test('should return null when no default city is set', async () => {
-      const testData: {
-        defaultCity: string;
-        cities: { name: string; lat: number; lon: number; }[];
-      } = {
+      const testData: CityData = {
         defaultCity: '',
-        cities: [
-          { name: 'São Paulo', lat: -23.5475, lon: -46.63611 }
-        ]
+        cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }],
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
@@ -128,12 +111,14 @@ describe('Data module', () => {
 
   describe('setDefaultCity', () => {
     test('should set default city successfully', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
         cities: [
           { name: 'São Paulo', lat: -23.5475, lon: -46.63611 },
           { name: 'Rio de Janeiro', lat: -22.90642, lon: -43.18223 }
-      ]
+        ],
+        settings: { temperatureUnit: 'celsius' }
+      }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
       const result = await setDefaultCity('São Paulo')
@@ -144,11 +129,11 @@ describe('Data module', () => {
     })
 
     test('should return false if city does not exist', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
-        cities: [
-          { name: 'São Paulo', lat: -23.5475, lon: -46.63611 }
-      ]
+        cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }],
+        settings: { temperatureUnit: 'celsius' }
+      }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
       const result = await setDefaultCity('Rio de Janeiro')
@@ -158,14 +143,14 @@ describe('Data module', () => {
 
   describe('addCity', () => {
     test('should add new city successfully', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
         cities: [],
-        settings: { temperatureUnit: 'celsius' as const }
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
-      const city = { name: 'São Paulo', lat: -23.5475, lon: -46.63611 }
+      const city: City = { name: 'São Paulo', lat: -23.5475, lon: -46.63611 }
       const result = await addCity(city)
       expect(result).toBe(true)
 
@@ -175,14 +160,14 @@ describe('Data module', () => {
     })
 
     test('should not add duplicate city', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
         cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }],
-        settings: { temperatureUnit: 'celsius' as const }
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
-      const city = { name: 'São Paulo', lat: -23.5475, lon: -46.63611 }
+      const city: City = { name: 'São Paulo', lat: -23.5475, lon: -46.63611 }
       const result = await addCity(city)
       expect(result).toBe(false)
 
@@ -193,12 +178,14 @@ describe('Data module', () => {
 
   describe('removeCity', () => {
     test('should remove city by name successfully', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: 'São Paulo',
         cities: [
           { name: 'São Paulo', lat: -23.5475, lon: -46.63611 },
           { name: 'Rio de Janeiro', lat: -22.90642, lon: -43.18223 }
-      ]
+        ],
+        settings: { temperatureUnit: 'celsius' }
+      }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
       const result = await removeCity('São Paulo')
@@ -211,9 +198,10 @@ describe('Data module', () => {
     })
 
     test('should not remove non-existent city', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
-        cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }]
+        cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }],
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
@@ -227,13 +215,15 @@ describe('Data module', () => {
 
   describe('getAllCities', () => {
     test('should return all cities', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
         cities: [
           { name: 'São Paulo', lat: -23.5475, lon: -46.63611 },
           { name: 'Rio de Janeiro', lat: -22.90642, lon: -43.18223 },
           { name: 'Salvador', lat: -12.97563, lon: -38.49096 }
-      ]
+        ],
+        settings: { temperatureUnit: 'celsius' }
+      }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
       const cities = await getAllCities()
@@ -246,15 +236,14 @@ describe('Data module', () => {
 
   describe('settings', () => {
     test('should update temperature unit', async () => {
-      const testData = {
+      const testData: CityData = {
         defaultCity: '',
         cities: [],
-        settings: { temperatureUnit: 'celsius' as const }
+        settings: { temperatureUnit: 'celsius' }
       }
       await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
 
-      const updatedSettings = { temperatureUnit: 'fahrenheit' as const }
-      await updateSettings(updatedSettings)
+      await updateSettings({ temperatureUnit: 'fahrenheit' })
 
       const loaded = await loadCities()
       expect(loaded.settings.temperatureUnit).toBe('fahrenheit')
@@ -264,11 +253,11 @@ describe('Data module', () => {
       try {
         await fs.unlink(DATA_FILE)
       } catch (err) {
-        // Ignore
+        // Ignore if file doesn't exist
       }
 
       const settings = await getSettings()
       expect(settings.temperatureUnit).toBe('celsius')
     })
   })
-}
+})

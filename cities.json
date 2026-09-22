@@ -25,6 +25,41 @@
       "name": "Salvador",
       "lat": -12.97563,
       "lon": -38.49096
+    },
+    {
+      "name": "Madrid",
+      "lat": 40.4165,
+      "lon": -3.70256
+    },
+    {
+      "name": "Guarulhos",
+      "lat": -23.46278,
+      "lon": -46.53333
+    },
+    {
+      "name": "Paris",
+      "lat": 48.85341,
+      "lon": 2.3488
+    },
+    {
+      "name": "New York",
+      "lat": 18.25397,
+      "lon": -77.17683
+    },
+    {
+      "name": "Florida",
+      "lat": 3.3223,
+      "lon": -76.2348
+    },
+    {
+      "name": "Virgínia",
+      "lat": -22.33333,
+      "lon": -45.09167
+    },
+    {
+      "name": "Barcelona",
+      "lat": -1.93579,
+      "lon": -80.6866
     }
   ],
   "settings": {

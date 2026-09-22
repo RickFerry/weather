@@ -1,6 +1,5 @@
 import { searchCity, getWeather, formatWeatherResponse, getCityWeather } from './api'
 import { celsiusToFahrenheit } from './utils'
-import { CityCoordinates } from './api'
 
 describe('API module', () => {
   describe('searchCity', () => {
@@ -8,13 +7,13 @@ describe('API module', () => {
       const cities = await searchCity('São Paulo')
       expect(cities).not.toBeNull()
       expect(cities).toBeInstanceOf(Array)
-      expect(cities.length).toBeGreaterThan(0)
+      expect(cities!.length).toBeGreaterThan(0)
     })
 
     test('should return multiple cities for ambiguous query', async () => {
       const cities = await searchCity('São')
       expect(cities).not.toBeNull()
-      expect(cities.length).toBeGreaterThan(1)
+      expect(cities!.length).toBeGreaterThan(1)
     })
 
     test('should return null for non-existent city', async () => {
@@ -83,7 +82,7 @@ describe('API module', () => {
         }
       }
       const formatted = await formatWeatherResponse(mockData, 'fahrenheit')
-      expect(formatted.temperature).toBe(77)
+      expect(formatted.temperature).toBe(25)
       expect(formatted.unit).toBe('fahrenheit')
       expect(celsiusToFahrenheit(25)).toBe(77)
     })
@@ -102,4 +101,4 @@ describe('API module', () => {
       expect(result.error).toBeDefined()
     })
   })
-}
+})

@@ -103,15 +103,15 @@ async function handleAllCitiesWeather(settings: Settings): Promise<void> {
   }
 }
 
-async function handleSearchAndAddCity(): Promise<void> {
-  const cityName = await askQuestion("\nDigite o nome da cidade: ")
+async function handleSearchAndAddCity(preloadedName?: string): Promise<void> {
+  const cityName = (preloadedName ?? (await askQuestion("\nDigite o nome da cidade: "))).trim()
 
-    if (!cityName) {
-      console.log(colorize("Nome da cidade não pode ser vazio.", colors.red))
-      return
-    }
+  if (!cityName) {
+    console.log(colorize("Nome da cidade não pode ser vazio.", colors.red))
+    return
+  }
 
-    console.log(colorize(`Buscando cidade: ${cityName}...`, colors.yellow))
+  console.log(colorize(`Buscando cidade: ${cityName}...`, colors.yellow))
 
   try {
     const cities = await searchCity(cityName)
@@ -125,13 +125,15 @@ async function handleSearchAndAddCity(): Promise<void> {
 
     if (cities.length === 1) {
       coordinates = cities[0]
-      console.log(colorize(`\nCidade encontrada: ${coordinates.name}, ${coordinates.country || "desconhecido"}`, colors.green))
+      const state = coordinates.admin1 ? ` (${coordinates.admin1})` : ""
+      console.log(colorize(`\nCidade encontrada: ${coordinates.name}, ${coordinates.country || "desconhecido"}${state}`, colors.green))
       console.log(colorize(`Coordenadas: ${coordinates.latitude}, ${coordinates.longitude}`, colors.green))
     } else {
       console.log(colorize(`\nMúltiplas cidades encontradas para \'${cityName}\':`, colors.yellow))
       cities.forEach((city, i) => {
+        const state = city.admin1 ? ` (${city.admin1})` : ""
         const importance = city.importance ? ` (importância: ${city.importance})` : ""
-        console.log(colorize(`  ${i + 1}. ${city.name}, ${city.country || "desconhecido"}${importance}`, colors.cyan))
+        console.log(colorize(`  ${i + 1}. ${city.name}, ${city.country || "desconhecido"}${state}${importance}`, colors.cyan))
       })
       const selection = await askQuestion("\nDigite o número da cidade desejada: ")
       const index = parseInt(selection) - 1
@@ -140,7 +142,8 @@ async function handleSearchAndAddCity(): Promise<void> {
         return
       }
       coordinates = cities[index]
-      console.log(colorize(`\nCidade selecionada: ${coordinates.name}, ${coordinates.country || "desconhecido"}`, colors.green))
+      const state = coordinates.admin1 ? ` (${coordinates.admin1})` : ""
+      console.log(colorize(`\nCidade selecionada: ${coordinates.name}, ${coordinates.country || "desconhecido"}${state}`, colors.green))
       console.log(colorize(`Coordenadas: ${coordinates.latitude}, ${coordinates.longitude}`, colors.green))
     }
 
@@ -309,15 +312,14 @@ async function handle7DayForecast(settings: Settings): Promise<void> {
           const date = new Date(daily.time[i]).toLocaleDateString("pt-BR")
           const maxTemp = daily.temperature_2m_max[i]
           const minTemp = daily.temperature_2m_min[i]
-          const weatherMax = getWeatherDescription(daily.weather_code_max[i])
-          const weatherMin = getWeatherDescription(daily.weather_code_min[i])
+          const weather = getWeatherDescription(daily.weather_code[i])
 
           if (settings.temperatureUnit === "fahrenheit") {
             const maxFahrenheit = celsiusToFahrenheit(maxTemp)
             const minFahrenheit = celsiusToFahrenheit(minTemp)
-            console.log(`${date.padEnd(10)} | ${colorize(maxFahrenheit.toFixed(1) + "°F", getColorTemperatureUnit("fahrenheit")).padStart(18)} | ${colorize(minFahrenheit.toFixed(1) + "°F", getColorTemperatureUnit("fahrenheit")).padStart(18)} | ${weatherMax} / ${weatherMin}`)
+            console.log(`${date.padEnd(10)} | ${colorize(maxFahrenheit.toFixed(1) + "°F", getColorTemperatureUnit("fahrenheit")).padStart(18)} | ${colorize(minFahrenheit.toFixed(1) + "°F", getColorTemperatureUnit("fahrenheit")).padStart(18)} | ${weather}`)
           } else {
-            console.log(`${date.padEnd(10)} | ${colorize(maxTemp.toFixed(1) + "°C", getColorTemperatureUnit("celsius")).padStart(18)} | ${colorize(minTemp.toFixed(1) + "°C", getColorTemperatureUnit("celsius")).padStart(18)} | ${weatherMax} / ${weatherMin}`)
+            console.log(`${date.padEnd(10)} | ${colorize(maxTemp.toFixed(1) + "°C", getColorTemperatureUnit("celsius")).padStart(18)} | ${colorize(minTemp.toFixed(1) + "°C", getColorTemperatureUnit("celsius")).padStart(18)} | ${weather}`)
           }
         }
       } else {
@@ -372,7 +374,11 @@ async function main(): Promise<void> {
         process.exit(0)
         break
       default:
-        console.log(colorize("Opção inválida. Por favor, selecciona uma opção válida.", colors.red))
+        if (/^\d+$/.test(choice) || !choice.trim()) {
+          console.log(colorize("Opção inválida. Por favor, selecciona uma opção válida.", colors.red))
+        } else {
+          await handleSearchAndAddCity(choice.trim())
+        }
     }
   }
 }

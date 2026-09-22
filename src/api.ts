@@ -6,6 +6,7 @@ export interface CityCoordinates {
   latitude: number
   longitude: number
   country: string
+  admin1?: string
   timezone: string
 }
 
@@ -35,8 +36,7 @@ export interface WeatherData {
     time: string[]
     temperature_2m_max: number[]
     temperature_2m_min: number[]
-    weather_code_max: number[]
-    weather_code_min: number[]
+    weather_code: number[]
   }
 }
 
@@ -52,83 +52,83 @@ export interface FormattedWeather {
   time: string
 }
 
-export interface CityOption {
-  name: string
-  latitude: number
-  longitude: number
-  country: string
-  timezone: string
-  importance?: number
+function getJson<T>(
+  apiLabel: string,
+  url: string,
+  retries = 1,
+  timeoutMs = 15000
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const attempt = (remaining: number) => {
+      const req = https.get(url, (res) => {
+        let data = ""
+        res.on("data", (chunk) => (data += chunk))
+        res.on("end", () => {
+          try {
+            resolve(JSON.parse(data) as T)
+          } catch (err) {
+            reject(new Error(`Erro ao parsear resposta da API ${apiLabel}: ${err}`))
+          }
+        })
+      })
+
+      req.on("error", (err) => {
+        if (remaining > 0) attempt(remaining - 1)
+        else reject(err)
+      })
+
+      req.setTimeout(timeoutMs, () => {
+        req.destroy()
+        if (remaining > 0) attempt(remaining - 1)
+        else reject(new Error(`Timeout da API ${apiLabel}`))
+      })
+    }
+
+    attempt(retries)
+  })
 }
 
 export async function searchCity(cityName: string): Promise<CityOption[] | null> {
   const encodedName = encodeURIComponent(cityName)
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodedName}&count=5&language=pt&format=json`
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodedName}&count=15&language=pt&format=json`
 
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, (res) => {
-      let data = ""
-      res.on("data", (chunk) => (data += chunk))
-      res.on("end", () => {
-        try {
-          const json = JSON.parse(data)
-          if (json.results && json.results.length > 0) {
-            const results = json.results.map((result: any) => ({
-              name: result.name,
-              latitude: result.latitude,
-              longitude: result.longitude,
-              country: result.country || "",
-              timezone: result.timezone || "",
-              importance: result.importance
-            }))
-            resolve(results)
-          } else {
-            resolve(null)
-          }
-        } catch (err) {
-          reject(new Error(`Erro ao parsear resposta da API de geocoding: ${err}`))
-        }
-      })
-    })
+  const json = await getJson<{ results?: any[] }>("de geocoding", url)
+  if (!json.results || json.results.length === 0) {
+    return null
+  }
 
-    req.on("error", reject)
-    req.setTimeout(5000, () => {
-      req.destroy()
-      reject(new Error("Timeout da API de geocoding"))
-    })
-  })
+  const results: CityOption[] = json.results.map((result: any) => ({
+    name: result.name,
+    latitude: result.latitude,
+    longitude: result.longitude,
+    country: result.country || "",
+    admin1: result.admin1 || "",
+    timezone: result.timezone || "",
+    importance: result.importance
+  }))
+
+  return results.filter(
+    (city, index, self) =>
+      self.findIndex(
+        (c) =>
+          c.name === city.name &&
+          c.country === city.country &&
+          c.admin1 === city.admin1
+      ) === index
+  )
 }
 
 export async function getWeather(
   latitude: number,
   longitude: number
 ): Promise<WeatherData> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,weather_code_max,weather_code_min&timezone=auto&format=json`
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&format=json`
 
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, (res) => {
-      let data = ""
-      res.on("data", (chunk) => (data += chunk))
-      res.on("end", () => {
-        try {
-          const json = JSON.parse(data)
-          if (json.error) {
-            reject(new Error(`Erro na API OpenMeteo: ${json.error}`))
-          } else {
-            resolve(json)
-          }
-        } catch (err) {
-          reject(new Error(`Erro ao parsear resposta da API de weather: ${err}`))
-        }
-      })
-    })
-
-    req.on("error", reject)
-    req.setTimeout(5000, () => {
-      req.destroy()
-      reject(new Error("Timeout da API de weather"))
-    })
-  })
+  const json = await getJson<any>("de weather", url)
+  if (json.error) {
+    throw new Error(`Erro na API OpenMeteo: ${json.error}`)
+  }
+  return json
 }
 
 export async function formatWeatherResponse(
