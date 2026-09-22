@@ -1,5 +1,6 @@
 # Project exclude paths
 /dist/
+/release/
 /node_modules/
 /node_modules/@babel/parser/
 /node_modules/@babel/types/

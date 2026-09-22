@@ -43,15 +43,15 @@ All data stored locally in `cities.json`. Uses OpenMeteo API for weather data.
 
 ## Workflow Notes
 - Source code in TypeScript compiles to CommonJS
-- All city data persists in `cities.json`
+- All city data persists in `cities.json` (resolved from `process.cwd()`)
 - API calls made to OpenMeteo Geocoding and Weather APIs
 - CLI uses interactive menu system
 - Run `npm test` (Jest) to validate after changes
+- `.github/workflows/release.yml` builds binaries (@yao-pkg/pkg) for linux/win/mac x64, tags `v<package.json.version>` and publishes a GitHub release (idempotent: skips if tag exists)
 
 ## What's Missing (Future)
 - Linting/formatter configuration
-- CI/CD pipelines
-- Docker containerization
+- Containerization using Docker
 - More settings options
 
 ## Questions for Maintainers

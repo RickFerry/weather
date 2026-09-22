@@ -114,6 +114,10 @@ npm test           # 29 testes em 5 suítes
 npm run test:cov   # com cobertura (mínimo 80%)
 ```
 
+### ⬇️ Binários
+
+A cada bump de versão no `package.json` com push em `main`, o [workflow de release](.github/workflows/release.yml) gera a tag `vX.Y.Z` e publica binários prontos (Linux, Windows e macOS x64) na página de [Releases](../../releases) do repositório — sem necessidade de instalar Node.js.
+
 ---
 
 ## 📖 Como usar
@@ -231,10 +235,9 @@ Duas chamadas gratuitas da [OpenMeteo](https://open-meteo.com) — sem chave, se
 ## 🗺️ Roadmap
 
 - [ ] ESLint + Prettier
-- [ ] CI/CD (GitHub Actions)
+- [x] CI/CD (GitHub Actions)
 - [ ] Container Docker
 - [ ] Mais opções de configuração
-- [ ] Publicação como binário executável
 
 ---
 
