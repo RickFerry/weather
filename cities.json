@@ -1,0 +1,33 @@
+{
+  "defaultCity": "São Paulo",
+  "cities": [
+    {
+      "name": "São Paulo",
+      "lat": -23.5475,
+      "lon": -46.63611
+    },
+    {
+      "name": "Rio de Janeiro",
+      "lat": -22.90642,
+      "lon": -43.18223
+    },
+    {
+      "name": "Porto Alegre",
+      "lat": -30.03283,
+      "lon": -51.23019
+    },
+    {
+      "name": "Curitiba",
+      "lat": -25.42778,
+      "lon": -49.27306
+    },
+    {
+      "name": "Salvador",
+      "lat": -12.97563,
+      "lon": -38.49096
+    }
+  ],
+  "settings": {
+    "temperatureUnit": "celsius"
+  }
+}
