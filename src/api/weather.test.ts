@@ -1,27 +1,7 @@
-import { searchCity, getWeather, formatWeatherResponse, getCityWeather } from './api'
-import { celsiusToFahrenheit } from './utils'
+import { getWeather, formatWeatherResponse, getCityWeather } from './weather'
+import { celsiusToFahrenheit } from '../utils/format'
 
-describe('API module', () => {
-  describe('searchCity', () => {
-    test('should find a single city for exact match', async () => {
-      const cities = await searchCity('São Paulo')
-      expect(cities).not.toBeNull()
-      expect(cities).toBeInstanceOf(Array)
-      expect(cities!.length).toBeGreaterThan(0)
-    })
-
-    test('should return multiple cities for ambiguous query', async () => {
-      const cities = await searchCity('São')
-      expect(cities).not.toBeNull()
-      expect(cities!.length).toBeGreaterThan(1)
-    })
-
-    test('should return null for non-existent city', async () => {
-      const cities = await searchCity('CidadeInexistente123')
-      expect(cities).toBeNull()
-    })
-  })
-
+describe('Weather API', () => {
   describe('getWeather', () => {
     test('should fetch current weather data', async () => {
       const weather = await getWeather(-23.5475, -46.63611) // São Paulo coordinates

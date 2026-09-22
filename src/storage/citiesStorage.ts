@@ -1,17 +1,9 @@
 import fs from "fs/promises"
 import path from "path"
+import { City } from "../types/City"
+import { Settings } from "../types/Settings"
 
 const DATA_FILE = path.join(process.cwd(), "cities.json")
-
-export interface City {
-  name: string
-  lat: number
-  lon: number
-}
-
-export interface Settings {
-  temperatureUnit: "celsius" | "fahrenheit"
-}
 
 export interface CityData {
   defaultCity: string
@@ -103,15 +95,4 @@ export async function removeCity(cityName: string): Promise<boolean> {
 export async function getAllCities(): Promise<City[]> {
   const data = await loadCities()
   return data.cities
-}
-
-export async function updateSettings(settings: Settings): Promise<void> {
-  const data = await loadCities()
-  data.settings = settings
-  await saveCities(data)
-}
-
-export async function getSettings(): Promise<Settings> {
-  const data = await loadCities()
-  return data.settings
 }

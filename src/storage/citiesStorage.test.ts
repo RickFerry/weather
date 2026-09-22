@@ -1,9 +1,9 @@
-import { loadCities, saveCities, getDefaultCity, setDefaultCity, addCity, removeCity, getAllCities, updateSettings, getSettings } from './data'
-import { CityData, City } from './data'
+import { loadCities, saveCities, getDefaultCity, setDefaultCity, addCity, removeCity, getAllCities, CityData } from './citiesStorage'
+import { City } from '../types/City'
 import fs from 'fs/promises'
 import path from 'path'
 
-describe('Data module', () => {
+describe('CitiesStorage', () => {
   const DATA_FILE = path.join(process.cwd(), 'cities.json')
   let originalData: any
 
@@ -231,33 +231,6 @@ describe('Data module', () => {
       expect(cities[0].name).toBe('São Paulo')
       expect(cities[1].name).toBe('Rio de Janeiro')
       expect(cities[2].name).toBe('Salvador')
-    })
-  })
-
-  describe('settings', () => {
-    test('should update temperature unit', async () => {
-      const testData: CityData = {
-        defaultCity: '',
-        cities: [],
-        settings: { temperatureUnit: 'celsius' }
-      }
-      await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
-
-      await updateSettings({ temperatureUnit: 'fahrenheit' })
-
-      const loaded = await loadCities()
-      expect(loaded.settings.temperatureUnit).toBe('fahrenheit')
-    })
-
-    test('should return default settings if file does not exist', async () => {
-      try {
-        await fs.unlink(DATA_FILE)
-      } catch (err) {
-        // Ignore if file doesn't exist
-      }
-
-      const settings = await getSettings()
-      expect(settings.temperatureUnit).toBe('celsius')
     })
   })
 })

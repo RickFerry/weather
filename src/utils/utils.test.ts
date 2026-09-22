@@ -1,6 +1,7 @@
-import { celsiusToFahrenheit, fahrenheitToCelsius, formatTemperature, getWeatherDescription, sleep } from './utils'
+import { celsiusToFahrenheit, fahrenheitToCelsius, formatTemperature, getWeatherDescription } from './format'
+import { sleep } from './time'
 
-describe('Utils module', () => {
+describe('Utils', () => {
   describe('Temperature conversion', () => {
     test('should convert Celsius to Fahrenheit correctly', () => {
       expect(celsiusToFahrenheit(0)).toBe(32)
