@@ -1,6 +1,6 @@
 {
   "name": "weather",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "El objetivo de esta aplicación es que creemos una aplicación de consola que pida que ingresemos la ciudad, Al final, generaremos un binario ejecutable.",
   "license": "ISC",
   "author": "",
