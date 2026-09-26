@@ -1,5 +1,5 @@
-import { celsiusToFahrenheit, fahrenheitToCelsius, formatTemperature, getWeatherDescription } from './format'
-import { sleep } from './time'
+import { celsiusToFahrenheit, fahrenheitToCelsius, formatTemperature, getWeatherDescription } from '../../src/utils/format'
+import { sleep } from '../../src/utils/time'
 
 describe('Utils', () => {
   describe('Temperature conversion', () => {

@@ -1,4 +1,4 @@
-import { updateSettings, getSettings } from './settingsStorage'
+import { updateSettings, getSettings } from '../../src/storage/settingsStorage'
 import fs from 'fs/promises'
 import path from 'path'
 

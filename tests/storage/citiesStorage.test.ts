@@ -1,5 +1,5 @@
-import { loadCities, saveCities, getDefaultCity, setDefaultCity, addCity, removeCity, getAllCities, CityData } from './citiesStorage'
-import { City } from '../types/City'
+import { loadCities, saveCities, getDefaultCity, setDefaultCity, addCity, removeCity, getAllCities, CityData } from '../../src/storage/citiesStorage'
+import { City } from '../../src/types/City'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -59,6 +59,74 @@ describe('CitiesStorage', () => {
       expect(loaded.cities).toHaveLength(0)
       expect(loaded.settings.temperatureUnit).toBe('celsius')
     })
+
+    test('should fall back to defaults and warn on malformed JSON', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+      await fs.writeFile(DATA_FILE, '{ isto nao e json', 'utf-8')
+
+      const loaded = await loadCities()
+
+      expect(loaded).toEqual({
+        defaultCity: '',
+        cities: [],
+        settings: { temperatureUnit: 'celsius' }
+      })
+      expect(errorSpy).toHaveBeenCalledWith('Erro ao carregar dados. Usando dados padrão.')
+      errorSpy.mockRestore()
+    })
+
+    test('should fall back to defaults when defaultCity has wrong type', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+      await fs.writeFile(
+        DATA_FILE,
+        JSON.stringify({ defaultCity: 42, cities: [], settings: { temperatureUnit: 'celsius' } }),
+        'utf-8'
+      )
+
+      const loaded = await loadCities()
+
+      expect(loaded.defaultCity).toBe('')
+      expect(loaded.cities).toHaveLength(0)
+      errorSpy.mockRestore()
+    })
+
+    test('should fall back to defaults when cities is not an array', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+      await fs.writeFile(
+        DATA_FILE,
+        JSON.stringify({ defaultCity: '', cities: 'nao-lista', settings: { temperatureUnit: 'celsius' } }),
+        'utf-8'
+      )
+
+      const loaded = await loadCities()
+
+      expect(loaded.cities).toHaveLength(0)
+      errorSpy.mockRestore()
+    })
+
+    test('should fall back to defaults when settings are missing', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+      await fs.writeFile(DATA_FILE, JSON.stringify({ defaultCity: '', cities: [] }), 'utf-8')
+
+      const loaded = await loadCities()
+
+      expect(loaded.settings.temperatureUnit).toBe('celsius')
+      errorSpy.mockRestore()
+    })
+
+    test('should fall back to defaults when temperatureUnit is not a string', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+      await fs.writeFile(
+        DATA_FILE,
+        JSON.stringify({ defaultCity: '', cities: [], settings: { temperatureUnit: 99 } }),
+        'utf-8'
+      )
+
+      const loaded = await loadCities()
+
+      expect(loaded.settings.temperatureUnit).toBe('celsius')
+      errorSpy.mockRestore()
+    })
   })
 
   describe('saveCities', () => {
@@ -106,6 +174,29 @@ describe('CitiesStorage', () => {
 
       const city = await getDefaultCity()
       expect(city).toBeNull()
+    })
+
+    test('should match the default city case-insensitively', async () => {
+      const testData: CityData = {
+        defaultCity: 'são paulo',
+        cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }],
+        settings: { temperatureUnit: 'celsius' }
+      }
+      await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
+
+      const city = await getDefaultCity()
+      expect(city?.name).toBe('São Paulo')
+    })
+
+    test('should return null when the default city is not in the list', async () => {
+      const testData: CityData = {
+        defaultCity: 'Cidade Removida',
+        cities: [{ name: 'São Paulo', lat: -23.5475, lon: -46.63611 }],
+        settings: { temperatureUnit: 'celsius' }
+      }
+      await fs.writeFile(DATA_FILE, JSON.stringify(testData, null, 2), 'utf-8')
+
+      expect(await getDefaultCity()).toBeNull()
     })
   })
 

@@ -1,5 +1,5 @@
-import { getWeather, formatWeatherResponse, getCityWeather } from './weather'
-import { celsiusToFahrenheit } from '../utils/format'
+import { getWeather, formatWeatherResponse, getCityWeather } from '../../src/api/weather'
+import { celsiusToFahrenheit } from '../../src/utils/format'
 
 describe('Weather API', () => {
   describe('getWeather', () => {
@@ -79,6 +79,32 @@ describe('Weather API', () => {
     test('should return error for non-existent city', async () => {
       const result = await getCityWeather('CidadeInexistente123')
       expect(result.error).toBeDefined()
+    })
+
+    test('should use provided coordinates without searching', async () => {
+      const result = await getCityWeather('Qualquer', -23.5475, -46.63611)
+
+      expect(result.error).toBeNull()
+      expect(result.location).toEqual({
+        name: 'Qualquer',
+        latitude: -23.5475,
+        longitude: -46.63611,
+        country: '',
+        timezone: ''
+      })
+    })
+
+    test('should ignore partial coordinates and search by name', async () => {
+      const result = await getCityWeather('São Paulo', -23.5475)
+
+      expect(result.location?.name).toBe('São Paulo')
+    })
+
+    test('should return error when the weather API responds with an error', async () => {
+      const result = await getCityWeather('São Paulo', 999, 999)
+
+      expect(result.weather).toBeNull()
+      expect(result.error).toBeTruthy()
     })
   })
 })

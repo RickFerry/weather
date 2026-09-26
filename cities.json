@@ -1,6 +1,12 @@
 {
-  "defaultCity": "",
-  "cities": [],
+  "defaultCity": "São Paulo",
+  "cities": [
+    {
+      "name": "São Paulo",
+      "lat": -23.5475,
+      "lon": -46.63611
+    }
+  ],
   "settings": {
     "temperatureUnit": "celsius"
   }
