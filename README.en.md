@@ -8,7 +8,7 @@
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Jest](https://img.shields.io/badge/Jest-29%20tests-C21325?logo=jest&logoColor=white)](https://jestjs.io)
+[![Jest](https://img.shields.io/badge/Jest-53%20tests-C21325?logo=jest&logoColor=white)](https://jestjs.io)
 [![Runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)](#-stack)
 [![License](https://img.shields.io/badge/license-ISC-blue)](#-license)
 
@@ -103,15 +103,15 @@ npm run dev        # build and run in one step
 Or separately:
 
 ```bash
-npm run build      # tsc → dist/
+npm run build      # cleans dist/ and compiles (tsc)
 npm start          # node dist/index.js
 ```
 
 Run the tests:
 
 ```bash
-npm test           # 29 tests in 5 suites
-npm run test:cov   # with coverage (minimum 80%)
+npm test           # 53 tests in 6 suites
+npm run test:cov   # with coverage (80% threshold)
 ```
 
 ### ⬇️ Binaries
@@ -175,6 +175,17 @@ src/
 └── index.ts        # Entry point + main loop
 ```
 
+Tests live outside `src/`, in `tests/`, mirroring the same structure:
+
+```
+tests/
+├── api/            # geocoding, weather, http (mocked https)
+├── storage/        # citiesStorage, settingsStorage
+└── utils/          # format, time
+```
+
+The production build (`tsconfig.json`) compiles **only** `src/`; tests are compiled by ts-jest via `tsconfig.test.json` (free `rootDir` to import `../src/...`).
+
 Data flow:
 
 ```
@@ -226,9 +237,10 @@ Two free [OpenMeteo](https://open-meteo.com) calls — no key, no signup:
 
 ## 🧪 Tests
 
-- **[Jest](https://jestjs.io)** with **ts-jest** — 29 tests in 5 suites, colocated with their modules (`citiesStorage.test.ts`, `geocoding.test.ts`, etc.).
-- Coverage with a **80%** minimum threshold (`npm run test:cov`).
+- **[Jest](https://jestjs.io)** with **ts-jest** — **53 tests in 6 suites**, in `tests/` (outside `src/`), mirroring the module structure.
+- API tests use **deterministic mocks** (e.g., `https` mocked with `EventEmitter` in `http.test.ts`) — no network dependency.
 - Storage tests isolate the real `cities.json` and restore the original state afterwards.
+- Coverage: **100%** statements/functions/lines and **~98%** branches, with a **80%** minimum threshold (`npm run test:cov`).
 
 ---
 
